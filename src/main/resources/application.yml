@@ -6,6 +6,8 @@ spring:
         show_sql: false
         format_sql: true
         highlight_sql : true
+  config:
+    import: secret.yml
 logging:
   pattern:
     console: "[%d{HH:mm:ss.SSS}][%-5level][%logger.%method:line%line] - %msg%n"
