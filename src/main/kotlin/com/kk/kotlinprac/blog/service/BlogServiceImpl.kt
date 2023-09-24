@@ -1,6 +1,8 @@
 package com.kk.kotlinprac.blog.service
 
 import com.kk.kotlinprac.blog.dto.BlogDto
+import com.kk.kotlinprac.blog.entity.Wordcount
+import com.kk.kotlinprac.blog.repository.WordcountRepository
 import com.kk.kotlinprac.core.exception.InvalidInputException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -11,7 +13,9 @@ import org.springframework.web.reactive.function.client.bodyToMono
 
 
 @Service
-class BlogServiceImpl : BlogService {
+class BlogServiceImpl(
+    val wordcountRepository: WordcountRepository
+) : BlogService {
 
     @Value("\${key.kakao}")
     lateinit var key: String
@@ -41,7 +45,19 @@ class BlogServiceImpl : BlogService {
             .retrieve()
             .bodyToMono<String>();
 
+        val result =  response.block();
 
-        return response.block();
+        val lowQuery:String = blogDto.query.lowercase()
+
+        val word:Wordcount = wordcountRepository.findById(lowQuery)
+            .orElse(Wordcount(lowQuery))
+
+        word.cnt++;
+        wordcountRepository.save(word);
+
+
+        return result;
     }
+
+    override fun searchWordRank(): List<Wordcount> = wordcountRepository.findTop10ByOrderByCntDesc()
 }
